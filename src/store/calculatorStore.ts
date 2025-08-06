@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { CalculatorState, CalculationHistory, CalculatorMode } from '../types/calculator';
+import { CalculationHistory, CalculatorMode, Theme } from '../types/calculator';
 
 interface User {
   id: string;
@@ -8,7 +8,18 @@ interface User {
   plan: 'free' | 'pro' | 'team';
 }
 
-interface CalculatorStore extends CalculatorState {
+interface CalculatorState {
+  display: string;
+  previousValue: number | null;
+  operation: string | null;
+  waitingForOperand: boolean;
+  history: CalculationHistory[];
+  memory: number;
+  mode: CalculatorMode;
+  theme: Theme;
+}
+
+interface CalculatorStore extends CalculatorState{
   // User state
   user: User | null;
   isAuthModalOpen: boolean;
@@ -30,7 +41,7 @@ interface CalculatorStore extends CalculatorState {
   subtractFromMemory: (value: number) => void;
   clearMemory: () => void;
   setMode: (mode: CalculatorMode) => void;
-  setTheme: (theme: 'light' | 'dark') => void;
+  setTheme: (theme: Theme) => void;
   reset: () => void;
   
   // User actions
@@ -101,10 +112,16 @@ export const useCalculatorStore = create<CalculatorStore>()(
       setTheme: (theme) => {
         set({ theme });
         // Apply theme to document
-        if (theme === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
+        document.documentElement.classList.remove('dark', 'classic', 'neon');
+        if (theme !== 'light' && theme !== 'system') {
+          document.documentElement.classList.add(theme);
+        }
+        // Handle system preference if theme is 'system'
+        if (theme === 'system') {
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (prefersDark) {
+            document.documentElement.classList.add('dark');
+          }
         }
       },
       

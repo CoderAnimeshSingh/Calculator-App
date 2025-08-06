@@ -5,9 +5,10 @@ export type CalculatorMode =
   | 'financial' 
   | 'matrix' 
   | 'graphing' 
+  | 'unit-converter'
   | 'ai-assistant';
 
-export type Theme = 'light' | 'dark' | 'system';
+export type Theme = 'light' | 'dark' | 'classic' | 'neon' | 'system';
 
 export interface CalculationHistory {
   id: string;
@@ -83,4 +84,21 @@ export interface FinancialCalculation {
   monthlyPayment?: number;
   result: number;
   breakdown: string[];
+}
+
+export interface ButtonConfig {
+  id: string;
+  label: string;
+  value: string;
+  type: 'number' | 'operator' | 'function' | 'action';
+  className: string;
+  colspan?: number;
+  rowspan?: number;
+}
+
+export interface CalculatorEngine {
+  name: string;
+  mode: CalculatorMode;
+  calculate: (expression: string) => number | string;
+  getButtons: () => ButtonConfig[];
 }

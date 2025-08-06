@@ -9,7 +9,8 @@ import {
   History,
   StickyNote,
   Mic,
-  Brain
+  Brain,
+  ArrowUpDown
 } from 'lucide-react';
 import { useCalculatorStore } from '../store/calculatorStore';
 import { CalculatorMode } from '../types/calculator';
@@ -37,6 +38,11 @@ const Sidebar: React.FC = () => {
       icon: <DollarSign className="h-5 w-5" />, 
       label: 'Financial', 
       color: 'text-yellow-600 dark:text-yellow-400' 
+    },
+    'unit-converter': { 
+      icon: <ArrowUpDown className="h-5 w-5" />, 
+      label: 'Unit Converter', 
+      color: 'text-teal-600 dark:text-teal-400' 
     },
     matrix: { 
       icon: <Grid3X3 className="h-5 w-5" />, 

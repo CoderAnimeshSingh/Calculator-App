@@ -28,6 +28,22 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
   }
+  
+  .classic {
+    --background: 40 70% 95%;
+    --foreground: 30 10% 15%;
+    --border: 35 30% 80%;
+    --input: 35 30% 80%;
+    --ring: 30 10% 15%;
+  }
+  
+  .neon {
+    --background: 260 40% 10%;
+    --foreground: 180 100% 80%;
+    --border: 300 100% 50%;
+    --input: 300 100% 50%;
+    --ring: 180 100% 80%;
+  }
 }
 
 @layer utilities {

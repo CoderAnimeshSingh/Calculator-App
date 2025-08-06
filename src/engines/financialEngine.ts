@@ -1,4 +1,5 @@
 import { CalculatorEngine, ButtonConfig } from '../types/calculator';
+import { evaluate } from 'mathjs';
 
 export const financialEngine: CalculatorEngine = {
   name: 'Financial Calculator',
@@ -32,8 +33,57 @@ export const financialEngine: CalculatorEngine = {
         }
       }
       
+      if (expression.includes('ROI')) {
+        // Parse ROI calculation: ROI(initialInvestment, finalValue, years)
+        const match = expression.match(/ROI\(([^,]+),([^,]+),([^)]+)\)/);
+        if (match) {
+          const [, initialInvestment, finalValue, years] = match.map(x => parseFloat(x.trim()));
+          const gain = finalValue - initialInvestment;
+          const roi = (gain / initialInvestment) * 100;
+          const annualizedROI = Math.pow((1 + roi / 100), 1 / years) - 1;
+          return Math.round(annualizedROI * 10000) / 100 + '%';
+        }
+      }
+      
+      if (expression.includes('GST')) {
+        // Parse GST calculation: GST(amount, rate)
+        const match = expression.match(/GST\(([^,]+),([^)]+)\)/);
+        if (match) {
+          const [, amount, rate] = match.map(x => parseFloat(x.trim()));
+          const gstAmount = amount * (rate / 100);
+          const totalAmount = amount + gstAmount;
+          return {
+            gstAmount: Math.round(gstAmount * 100) / 100,
+            totalAmount: Math.round(totalAmount * 100) / 100
+          };
+        }
+      }
+      
+      if (expression.includes('CI')) {
+        // Parse Compound Interest calculation: CI(principal, rate, time, frequency)
+        const match = expression.match(/CI\(([^,]+),([^,]+),([^,]+),([^)]+)\)/);
+        if (match) {
+          const [, principal, rate, time, frequency] = match.map(x => parseFloat(x.trim()));
+          const n = frequency || 1; // Compounding frequency (default: annual)
+          const amount = principal * Math.pow(1 + (rate / 100) / n, n * time);
+          const interest = amount - principal;
+          return Math.round(amount * 100) / 100;
+        }
+      }
+      
+      if (expression.includes('SI')) {
+        // Parse Simple Interest calculation: SI(principal, rate, time)
+        const match = expression.match(/SI\(([^,]+),([^,]+),([^)]+)\)/);
+        if (match) {
+          const [, principal, rate, time] = match.map(x => parseFloat(x.trim()));
+          const interest = (principal * rate * time) / 100;
+          const amount = principal + interest;
+          return Math.round(amount * 100) / 100;
+        }
+      }
+      
       // Standard calculation
-      const result = eval(expression.replace(/×/g, '*').replace(/÷/g, '/'));
+      const result = evaluate(expression.replace(/×/g, '*').replace(/÷/g, '/'));
       return typeof result === 'number' ? Math.round(result * 100) / 100 : 'Error';
     } catch (error) {
       return 'Error';
@@ -44,6 +94,8 @@ export const financialEngine: CalculatorEngine = {
     // Financial functions
     { id: 'emi', label: 'EMI', value: 'EMI(', type: 'function', className: 'calculator-button bg-green-500 hover:bg-green-600 text-white' },
     { id: 'sip', label: 'SIP', value: 'SIP(', type: 'function', className: 'calculator-button bg-blue-500 hover:bg-blue-600 text-white' },
+    { id: 'roi', label: 'ROI', value: 'ROI(', type: 'function', className: 'calculator-button bg-indigo-500 hover:bg-indigo-600 text-white' },
+    { id: 'gst', label: 'GST', value: 'GST(', type: 'function', className: 'calculator-button bg-teal-500 hover:bg-teal-600 text-white' },
     { id: 'compound', label: 'CI', value: 'CI(', type: 'function', className: 'calculator-button bg-purple-500 hover:bg-purple-600 text-white' },
     { id: 'simple', label: 'SI', value: 'SI(', type: 'function', className: 'calculator-button bg-yellow-500 hover:bg-yellow-600 text-white' },
     

@@ -6,10 +6,13 @@ import { programmerEngine } from '../engines/programmerEngine';
 import { financialEngine } from '../engines/financialEngine';
 import { matrixEngine } from '../engines/matrixEngine';
 import { graphingEngine } from '../engines/graphingEngine';
+import { unitConverterEngine } from '../engines/unitConverterEngine';
 import { ButtonConfig, CalculationHistory } from '../types/calculator';
 import Display from './Display';
 import ButtonGrid from './ButtonGrid';
 import GraphPlotter from './GraphPlotter';
+import UnitConverter from './UnitConverter';
+import FinancialCalculator from './FinancialCalculator';
 
 const CalculatorPanel: React.FC = () => {
   const {
@@ -31,7 +34,6 @@ const CalculatorPanel: React.FC = () => {
     setCurrentEquation,
   } = useCalculatorStore();
 
-  // Get the appropriate engine based on mode
   const getEngine = () => {
     // Check access for premium modes
     if (mode !== 'basic' && mode !== 'scientific' && (!user || user.plan === 'free')) {
@@ -49,6 +51,8 @@ const CalculatorPanel: React.FC = () => {
         return matrixEngine;
       case 'graphing':
         return graphingEngine;
+      case 'unit-converter':
+        return unitConverterEngine;
       case 'basic':
       default:
         return basicEngine;
@@ -60,8 +64,8 @@ const CalculatorPanel: React.FC = () => {
   const handleButtonClick = (button: ButtonConfig) => {
     // Check premium features
     if (button.type === 'function' && (!user || user.plan === 'free')) {
-      const premiumFunctions = ['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'exp', '!'];
-      if (premiumFunctions.includes(button.value)) {
+      const premiumFunctions = ['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'exp', '!', 'toHex', 'toBin', 'toOct', 'ASCII'];
+      if (premiumFunctions.includes(button.value.replace('(', ''))) {
         setPricingModalOpen(true);
         return;
       }
@@ -111,21 +115,36 @@ const CalculatorPanel: React.FC = () => {
 
   const handleFunction = (func: string) => {
     const inputValue = parseFloat(display);
-    let result: number;
+    let result: number | string;
 
     try {
+      // Handle base conversion and ASCII functions
+      if (func.endsWith('(')) {
+        setDisplay(display + func);
+        return;
+      }
+
       switch (func) {
         case 'sqrt':
           result = Math.sqrt(inputValue);
           break;
         case 'sin':
-          result = Math.sin(inputValue);
+          result = Math.sin(inputValue * Math.PI / 180); // Convert to radians
           break;
         case 'cos':
-          result = Math.cos(inputValue);
+          result = Math.cos(inputValue * Math.PI / 180);
           break;
         case 'tan':
-          result = Math.tan(inputValue);
+          result = Math.tan(inputValue * Math.PI / 180);
+          break;
+        case 'asin':
+          result = Math.asin(inputValue) * 180 / Math.PI; // Convert to degrees
+          break;
+        case 'acos':
+          result = Math.acos(inputValue) * 180 / Math.PI;
+          break;
+        case 'atan':
+          result = Math.atan(inputValue) * 180 / Math.PI;
           break;
         case 'log10':
           result = Math.log10(inputValue);
@@ -172,11 +191,27 @@ const CalculatorPanel: React.FC = () => {
         }
         break;
       case '=':
+        // Handle function calls with parentheses
+        if (display.includes('(') && display.endsWith(')')) {
+          const result = engine.calculate(display);
+          const historyEntry: CalculationHistory = {
+            id: Date.now().toString(),
+            expression: display,
+            result: String(result),
+            timestamp: new Date(),
+            mode,
+          };
+          addToHistory(historyEntry);
+          setDisplay(String(result));
+          setWaitingForOperand(true);
+          return;
+        }
+
+        // Handle standard calculations
         const inputValue = parseFloat(display);
         if (previousValue !== null && operation) {
           const newValue = calculate(previousValue, inputValue, operation);
           
-          // Add to history
           const historyEntry: CalculationHistory = {
             id: Date.now().toString(),
             expression: `${previousValue} ${operation} ${inputValue}`,
@@ -205,6 +240,12 @@ const CalculatorPanel: React.FC = () => {
         setGraphVisible(false);
         setCurrentEquation('');
         break;
+      case 'dec':
+      case 'hex':
+      case 'oct':
+      case 'bin':
+        // Base conversion is handled by the engine
+        break;
     }
   };
 
@@ -215,9 +256,24 @@ const CalculatorPanel: React.FC = () => {
       case '-':
         return firstValue - secondValue;
       case '*':
+      case '×':
         return firstValue * secondValue;
       case '/':
+      case '÷':
         return secondValue !== 0 ? firstValue / secondValue : 0;
+      case '&':
+      case 'AND':
+        return firstValue & secondValue;
+      case '|':
+      case 'OR':
+        return firstValue | secondValue;
+      case '^':
+      case 'XOR':
+        return firstValue ^ secondValue;
+      case '<<':
+        return firstValue << secondValue;
+      case '>>':
+        return firstValue >> secondValue;
       default:
         return secondValue;
     }
@@ -231,11 +287,17 @@ const CalculatorPanel: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-dark-800 rounded-xl shadow-xl overflow-hidden">
-        <Display />
-        <ButtonGrid buttons={engine.getButtons()} onButtonClick={handleButtonClick} />
-      </div>
+      {/* Show standard calculator interface for most modes */}
+      {mode !== 'unit-converter' && mode !== 'financial' && (
+        <div className="bg-white dark:bg-dark-800 rounded-xl shadow-xl overflow-hidden">
+          <Display />
+          <ButtonGrid buttons={engine.getButtons()} onButtonClick={handleButtonClick} />
+        </div>
+      )}
       
+      {/* Show specialized interfaces for certain modes */}
+      {mode === 'unit-converter' && <UnitConverter />}
+      {mode === 'financial' && <FinancialCalculator />}
       {mode === 'graphing' && (
         <GraphPlotter equation={currentEquation} isVisible={isGraphVisible} />
       )}

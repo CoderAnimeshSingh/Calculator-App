@@ -8,7 +8,8 @@ A comprehensive, professional-grade calculator application with AI assistance, m
 - **Basic Calculator**: Standard arithmetic operations
 - **Scientific Calculator**: Advanced mathematical functions (sin, cos, tan, log, etc.)
 - **Programmer Calculator**: Binary, hexadecimal, and bitwise operations
-- **Financial Calculator**: EMI, SIP, compound interest calculations
+- **Financial Calculator**: EMI, SIP, ROI, GST, compound interest calculations
+- **Unit Converter**: Convert between different units of length, area, weight, volume, temperature, and currency
 - **Matrix Calculator**: Matrix operations and linear algebra
 - **Graphing Calculator**: Function plotting and visualization
 
